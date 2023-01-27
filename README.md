@@ -39,4 +39,7 @@ Reference
 **Title:** trying to send HTTP response from low level socket server <br/>
 **Resource URI:** https://stackoverflow.com/a/36122569/11849713 <br/>
 
-
+**Author:** Mozilla <br/>
+**Author URL:** https://developer.mozilla.org/ <br/>
+**Title:** Title <br/>
+**Resource URI:** https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ Content-Type <br/>

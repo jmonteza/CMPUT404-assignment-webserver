@@ -49,6 +49,7 @@ def is_not_directory_traversal(path):
 
 
 def build_message_and_response(status, identifier):
+    # Build the message and response using the status codes
     status_codes = {
         200: "OK",
         301: "Moved Permanently",
@@ -62,6 +63,8 @@ def build_message_and_response(status, identifier):
 
 
 def build_response_headers(msg, suffix, status, decoded_path):
+    # Build the response headers, handle MIME types, and redirection in the header
+    # Reference: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type
     response_headers = {
         'Content-Type': 'application/octet-stream; charset=utf-8',
         'Content-Length': len(msg),
@@ -100,8 +103,6 @@ class MyWebServer(socketserver.BaseRequestHandler):
         status = 200
 
         self.data = self.request.recv(1024).strip()
-
-        # print ("Got a request of: %s\n" % self.data)
 
         # ['GET', '/', 'HTTP/1.1']
         first_line_request = self.data.decode("utf-8").split("\n")[0].split()
@@ -171,13 +172,13 @@ class MyWebServer(socketserver.BaseRequestHandler):
             status, "response")
 
         # Generate the first line: HTTP/1.1 200 OK
-        r = '%s %s %s\r\n' % (
+        response_first_line = '%s %s %s\r\n' % (
             response_protocol, response_status, response_status_text)
 
         # We need to handle the possibility of broken pipe in sockets
         try:
             # Send the first line: HTTP/1.1 200 OK
-            self.request.send(bytes(r, "utf-8"))
+            self.request.send(bytes(response_first_line, "utf-8"))
 
             # Send the next three lines:
             # Content-Type: text/html; charset=utf-8
