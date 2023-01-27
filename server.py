@@ -104,10 +104,12 @@ class MyWebServer(socketserver.BaseRequestHandler):
         # Only allow GET requests
         if http_method != "GET":
             status = 405
+
         # Directory and missing the path ending
         elif is_not_directory_traversal(f"/www{path}") and os.path.isdir(f"www{path}") and not decoded_path.endswith("/"):
             # Redirect
             status = 301
+
         # Directory, serve index or index.html
         elif is_not_directory_traversal(f"/www{path}") and os.path.isdir(f"www{path}"):
             concat_path = f"www{path}/index.html"
@@ -117,6 +119,9 @@ class MyWebServer(socketserver.BaseRequestHandler):
                 msg = file.read()
             except:
                 status = 404
+            else:
+                file.close()
+
         # File, serve the file
         elif is_not_directory_traversal(f"/www{path}") and os.path.isfile(f"www{path}"):
             try:
@@ -124,9 +129,11 @@ class MyWebServer(socketserver.BaseRequestHandler):
                 msg = file.read()
             except:
                 status = 404
+            else:
+                file.close()
+
         # Not a directory or a file
         else:
-            # print("here!!")
             status = 404
 
         # print(status)
