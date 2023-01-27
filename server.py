@@ -30,6 +30,14 @@ import os
 
 
 def is_not_directory_traversal(path):
+    """
+    Reference:
+    Author: kabanus
+    Author URL: https://stackoverflow.com/users/6881240/kabanus
+    Title: How to prevent directory traversal attack from Python code
+    Resource URI: https://stackoverflow.com/a/45188896/11849713
+    """
+
     safe_path = '/www/'
 
     # /www/ or /www + / s
@@ -77,7 +85,13 @@ def build_response_headers(msg, suffix, status, decoded_path):
 class MyWebServer(socketserver.BaseRequestHandler):
 
     def handle(self):
-
+        """
+        Reference:
+        Author: drew010
+        Author URL: https://stackoverflow.com/users/892493/drew010
+        Title: trying to send HTTP response from low level socket server
+        Resource URI: https://stackoverflow.com/a/36122569/11849713
+        """
         status = 200
 
         self.data = self.request.recv(1024).strip()
