@@ -93,9 +93,6 @@ class MyWebServer(socketserver.BaseRequestHandler):
         except:
             http_method = None
 
-        if http_method != "GET":
-            status = 405
-
         # Check if the GET /path HTTP/1.1 exists
         try:
             decoded_path = first_line_request[1]
@@ -104,8 +101,11 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
         path = Path(r'{}'.format(decoded_path))
 
+        # Only allow GET requests
+        if http_method != "GET":
+            status = 405
         # Directory and missing the path ending
-        if is_not_directory_traversal(f"/www{path}") and os.path.isdir(f"www{path}") and not decoded_path.endswith("/"):
+        elif is_not_directory_traversal(f"/www{path}") and os.path.isdir(f"www{path}") and not decoded_path.endswith("/"):
             # Redirect
             status = 301
         # Directory, serve index or index.html
@@ -129,6 +129,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
             # print("here!!")
             status = 404
 
+        # print(status)
         # print(path.suffix)
 
         # Show the error message in HTML if suffix is an empty string
