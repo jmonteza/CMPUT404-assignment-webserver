@@ -4,6 +4,7 @@ from pathlib import Path
 import os
 
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
+# Copyright 2023 Justin Monteza
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -150,11 +151,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
         else:
             status = 404
 
-        # print(status)
-        # print(path.suffix)
-
-        # Show the error message in HTML if suffix is an empty string
-        # suffix = str(path.suffix) if str(path.suffix) else ".html"
+        # Get the path's suffix
         suffix = str(path.suffix)
 
         if status != 200:
@@ -166,16 +163,25 @@ class MyWebServer(socketserver.BaseRequestHandler):
         response_headers_raw = ''.join('%s: %s\r\n' % (k, v)
                                        for k, v in response_headers.items())
 
-        # print(response_headers_raw)
-
         response_protocol, response_status, response_status_text = build_message_and_response(
             status, "response")
 
+        # Generate the first line: HTTP/1.1 200 OK
         r = '%s %s %s\r\n' % (
             response_protocol, response_status, response_status_text)
+
+        # Send the first line: HTTP/1.1 200 OK
         self.request.send(bytes(r, "utf-8"))
+
+        # Send the next three lines:
+        # Content-Type: text/html; charset=utf-8
+        # Content-Length: 470
+        # Connection: close
         self.request.send(bytes(response_headers_raw, "utf-8"))
+
         self.request.send(bytes("\r\n", "utf-8"))
+
+        # Send the body
         self.request.send(bytes(msg, "utf-8"))
 
 
