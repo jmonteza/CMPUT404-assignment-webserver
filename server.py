@@ -67,6 +67,10 @@ def build_response_headers(msg, suffix, status, decoded_path):
     if status == 301:
         response_headers['Location'] = f'{decoded_path}/'
 
+    # Invalid file or invalid directory, show an HTML error message
+    if (suffix and status == 404) or (not suffix and status == 404):
+        response_headers['Content-Type'] = 'text/html; charset=utf-8'
+
     return response_headers
 
 
@@ -83,6 +87,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
         # ['GET', '/', 'HTTP/1.1']
         first_line_request = self.data.decode("utf-8").split("\n")[0].split()
 
+        # Check if the GET /path HTTP/1.1 exists
         try:
             http_method = first_line_request[0]
         except:
@@ -91,7 +96,11 @@ class MyWebServer(socketserver.BaseRequestHandler):
         if http_method != "GET":
             status = 405
 
-        decoded_path = first_line_request[1]
+        # Check if the GET /path HTTP/1.1 exists
+        try:
+            decoded_path = first_line_request[1]
+        except:
+            decoded_path = '/'
 
         path = Path(r'{}'.format(decoded_path))
 
@@ -117,10 +126,14 @@ class MyWebServer(socketserver.BaseRequestHandler):
                 status = 404
         # Not a directory or a file
         else:
+            # print("here!!")
             status = 404
 
-        # Show the error message in html if suffix is an empty string
-        suffix = str(path.suffix) if str(path.suffix) else ".html"
+        # print(path.suffix)
+
+        # Show the error message in HTML if suffix is an empty string
+        # suffix = str(path.suffix) if str(path.suffix) else ".html"
+        suffix = str(path.suffix)
 
         if status != 200:
             msg = build_message_and_response(status, "message")
