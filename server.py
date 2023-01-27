@@ -74,6 +74,9 @@ def build_response_headers(msg, suffix, status, decoded_path):
     elif status == 200 and suffix.endswith("css"):
         response_headers['Content-Type'] = 'text/css; charset=utf-8'
 
+    elif status == 200 and suffix.endswith("txt"):
+        response_headers['Content-Type'] = 'text/plain; charset=utf-8'
+
     # Invalid file, invalid directory, or unacceptable HTTP method. Show an HTML error message
     elif status in (404, 405):
         response_headers['Content-Type'] = 'text/html; charset=utf-8'
