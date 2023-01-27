@@ -41,44 +41,12 @@ def is_not_directory_traversal(path):
         return False
 
 
-def build_message_and_response(status, identifier):
-    status_codes = {
-        200: "OK",
-        301: "Moved Permanently",
-        404: "Not Found",
-        405: "Method Not Allowed"
-    }
-    if identifier == "message":
-        return f"{status} {status_codes[status]}"
-    elif identifier == "response":
-        return 'HTTP/1.1', str(status), status_codes[status]
-
-
-def build_response_headers(msg, suffix, status, decoded_path):
-    response_headers = {
-        'Content-Type': 'application/octet-stream; charset=utf-8',
-        'Content-Length': len(msg),
-        'Connection': 'close',
-    }
-    if suffix.endswith("html"):
-        response_headers['Content-Type'] = 'text/html; charset=utf-8'
-
-    elif suffix.endswith("css"):
-        response_headers['Content-Type'] = 'text/css; charset=utf-8'
-
-    if status == 301:
-        response_headers['Location'] = f'{decoded_path}/'
-
-    return response_headers
-
-
 class MyWebServer(socketserver.BaseRequestHandler):
 
     def handle(self):
-        # error = False
-        # method_not_allowed = False
-        # redirect = False
-        status = 200
+        error = False
+        method_not_allowed = False
+        redirect = False
 
         self.data = self.request.recv(1024).strip()
 
@@ -90,87 +58,101 @@ class MyWebServer(socketserver.BaseRequestHandler):
         http_method = first_line_request[0]
 
         if http_method != "GET":
-            # method_not_allowed = True
-            status = 405
+            method_not_allowed = True
 
         decoded_path = first_line_request[1]
 
         path = Path(r'{}'.format(decoded_path))
-
-        print("Decoded path", decoded_path)
 
         print("Real Path", os.path.realpath(f"/www{path}"))
 
         # Directory and missing the path ending
         if is_not_directory_traversal(f"/www{path}") and os.path.isdir(f"www{path}") and not decoded_path.endswith("/"):
             # Redirect
-            # redirect = True
-            status = 301
+            redirect = True
         # Directory, serve index or index.html
         elif is_not_directory_traversal(f"/www{path}") and os.path.isdir(f"www{path}"):
             concat_path = f"www{path}/index.html"
-            # print("---------concat:", concat_path)
-            path = Path(r'{}'.format(concat_path))
-            print(concat_path, path)
+            # print("concat:", concat_path)
             try:
-                file = open(path)
+                file = open(concat_path)
                 msg = file.read()
             except:
-                status = 404
+                error = True
         # File, serve the file
         elif is_not_directory_traversal(f"/www{path}") and os.path.isfile(f"www{path}"):
             try:
                 file = open(f"www{path}")
                 msg = file.read()
             except:
-                status = 404
+                error = True
         # Not a directory or a file
         else:
-            status = 404
+            error = True
 
         # parent = path.parent
-        # name = str(path.name)
+        name = str(path.name)
         suffix = str(path.suffix)
 
-        print("************ Suffix", suffix)
+        print(first_line_request)
+        print("Name: ", name)
+        print("Path: *************** " + str(path))
+#
 
-        # print(first_line_request)
-        # print("Name: ", name)
-        # print("Path: *************** " + str(path))
+        # msg = "<html><body><h1>This is a test</h1><p>More content here</p></body></html>"
 
-        if status != 200:
-            msg = build_message_and_response(status, "message")
+        # / or no suffix
+        # if len(name) == 0 or len(suffix) == 0:
+        #     concat_path = "www" + str(path) + "/" + "index.html"
+        #     print("here" + concat_path)
+        #     try:
+        #         file = open(concat_path)
+        #         msg = file.read()
+        #     except:
+        #         error = True
+        # else:
 
-        # print(msg)
-        # if error:
-        #     msg = "404 Not Found"
-        # elif method_not_allowed:
-        #     msg = "405 Method Not Allowed"
-        # elif redirect:
-        #     msg = "301 Moved Permanently"
+        # try:
+        #     file = open("www" + str(path))
+        #     msg = file.read()
+        # except:
+        #     error = True
 
-        response_headers = build_response_headers(
-            msg, suffix, status, decoded_path)
+        if error:
+            msg = "404 Not Found"
+        elif method_not_allowed:
+            msg = "405 Method Not Allowed"
+        elif redirect:
+            msg = "301 Moved Permanently"
+
+        response_headers = {
+            'Content-Type': 'text/html; encoding=utf8',
+            'Content-Length': len(msg),
+            'Connection': 'close',
+        }
+
+        if suffix.endswith("css"):
+            response_headers['Content-Type'] = 'text/css; encoding=utf8'
+
+        if redirect:
+            response_headers['Location'] = f'{decoded_path}/'
 
         response_headers_raw = ''.join('%s: %s\r\n' % (k, v)
                                        for k, v in response_headers.items())
 
-        print(response_headers_raw)
+        response_proto = 'HTTP/1.1'
+        response_status = '200'
+        response_status_text = 'OK'  # this can be random
 
-        response_proto, response_status, response_status_text = build_message_and_response(
-            status, "response")
-        # response_status = '200'
-        # response_status_text = 'OK'  # this can be random
-
-        # if error:
-        #     response_status = '404'
-        #     response_status_text = 'Not Found'
-        # elif method_not_allowed:
-        #     response_status = '405'
-        #     response_status_text = 'Method Not Allowed'
-        # elif redirect:
-        #     response_status = '301'
-        #     response_status_text = 'Moved Permanently'
+        if error:
+            response_status = '404'
+            response_status_text = 'Not Found'
+        elif method_not_allowed:
+            response_status = '405'
+            response_status_text = 'Method Not Allowed'
+        elif redirect:
+            response_status = '301'
+            response_status_text = 'Moved Permanently'
 
         r = '%s %s %s\r\n' % (
             response_proto, response_status, response_status_text)
