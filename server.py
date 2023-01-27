@@ -32,8 +32,6 @@ import os
 def is_not_directory_traversal(path):
     safe_path = '/www/'
 
-    # print("^^^^^^^^", path)
-    # print(":::::::::", str(os.path.realpath(path)))
     # /www/ or /www + / s
     if (os.path.realpath(path).startswith(safe_path)) or (f"{os.path.realpath(path)}/" == safe_path):
         return True
@@ -75,9 +73,7 @@ def build_response_headers(msg, suffix, status, decoded_path):
 class MyWebServer(socketserver.BaseRequestHandler):
 
     def handle(self):
-        # error = False
-        # method_not_allowed = False
-        # redirect = False
+
         status = 200
 
         self.data = self.request.recv(1024).strip()
@@ -89,32 +85,30 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
         try:
             http_method = first_line_request[0]
-        except: 
+        except:
             http_method = None
 
         if http_method != "GET":
-            # method_not_allowed = True
             status = 405
 
         decoded_path = first_line_request[1]
 
         path = Path(r'{}'.format(decoded_path))
 
-        print("Decoded path", decoded_path)
+        # print("Decoded path", decoded_path)
 
-        print("Real Path", os.path.realpath(f"/www{path}"))
+        # print("Real Path", os.path.realpath(f"/www{path}"))
 
         # Directory and missing the path ending
         if is_not_directory_traversal(f"/www{path}") and os.path.isdir(f"www{path}") and not decoded_path.endswith("/"):
             # Redirect
-            # redirect = True
             status = 301
         # Directory, serve index or index.html
         elif is_not_directory_traversal(f"/www{path}") and os.path.isdir(f"www{path}"):
             concat_path = f"www{path}/index.html"
             # print("---------concat:", concat_path)
             path = Path(r'{}'.format(concat_path))
-            print(concat_path, path)
+            # print(concat_path, path)
             try:
                 file = open(path)
                 msg = file.read()
@@ -135,7 +129,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
         # name = str(path.name)
         suffix = str(path.suffix)
 
-        print("************ Suffix", suffix)
+        # print("************ Suffix", suffix)
 
         # print(first_line_request)
         # print("Name: ", name)
@@ -158,7 +152,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
         response_headers_raw = ''.join('%s: %s\r\n' % (k, v)
                                        for k, v in response_headers.items())
 
-        print(response_headers_raw)
+        # print(response_headers_raw)
 
         response_proto, response_status, response_status_text = build_message_and_response(
             status, "response")
