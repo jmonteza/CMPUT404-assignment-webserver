@@ -174,19 +174,24 @@ class MyWebServer(socketserver.BaseRequestHandler):
         r = '%s %s %s\r\n' % (
             response_protocol, response_status, response_status_text)
 
-        # Send the first line: HTTP/1.1 200 OK
-        self.request.send(bytes(r, "utf-8"))
+        # We need to handle the possibility of broken pipe in sockets
+        try:
+            # Send the first line: HTTP/1.1 200 OK
+            self.request.send(bytes(r, "utf-8"))
 
-        # Send the next three lines:
-        # Content-Type: text/html; charset=utf-8
-        # Content-Length: 470
-        # Connection: close
-        self.request.send(bytes(response_headers_raw, "utf-8"))
+            # Send the next three lines:
+            # Content-Type: text/html; charset=utf-8
+            # Content-Length: 470
+            # Connection: close
+            self.request.send(bytes(response_headers_raw, "utf-8"))
 
-        self.request.send(bytes("\r\n", "utf-8"))
+            self.request.send(bytes("\r\n", "utf-8"))
 
-        # Send the body
-        self.request.send(bytes(msg, "utf-8"))
+            # Send the body
+            self.request.send(bytes(msg, "utf-8"))
+
+        except:
+            print("Broken Pipe Error")
 
 
 if __name__ == "__main__":
