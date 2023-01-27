@@ -67,18 +67,19 @@ def build_response_headers(msg, suffix, status, decoded_path):
         'Content-Length': len(msg),
         'Connection': 'close',
     }
-    if suffix.endswith("html"):
+
+    if status == 200 and suffix.endswith("html"):
         response_headers['Content-Type'] = 'text/html; charset=utf-8'
 
-    elif suffix.endswith("css"):
+    elif status == 200 and suffix.endswith("css"):
         response_headers['Content-Type'] = 'text/css; charset=utf-8'
+
+    # Invalid file, invalid directory, or unacceptable HTTP method. Show an HTML error message
+    elif status in (404, 405):
+        response_headers['Content-Type'] = 'text/html; charset=utf-8'
 
     if status == 301:
         response_headers['Location'] = f'{decoded_path}/'
-
-    # Invalid file or invalid directory, show an HTML error message
-    if (suffix and status == 404) or (not suffix and status == 404):
-        response_headers['Content-Type'] = 'text/html; charset=utf-8'
 
     return response_headers
 
