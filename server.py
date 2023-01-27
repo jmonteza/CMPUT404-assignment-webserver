@@ -87,7 +87,10 @@ class MyWebServer(socketserver.BaseRequestHandler):
         # ['GET', '/', 'HTTP/1.1']
         first_line_request = self.data.decode("utf-8").split("\n")[0].split()
 
-        http_method = first_line_request[0]
+        try:
+            http_method = first_line_request[0]
+        except: 
+            http_method = None
 
         if http_method != "GET":
             # method_not_allowed = True
